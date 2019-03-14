@@ -1,2 +1,2 @@
 # drift
-Event based gaming server
+Reactive gaming server
