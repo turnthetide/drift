@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test page</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.3.0/sockjs.min.js"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vertx/3.6.3/vertx-eventbus.min.js"
+            crossorigin="anonymous"></script>
+    <script>
+        var eb = new EventBus(window.location.protocol + "//" + window.location.host + "/eventbus");
+
+        eb.onopen = function () {
+          eb.registerHandler("events", function (error, message) {
+            document.getElementById('output').innerHTML += message.body + '<br/>';
+          });
+        };
+
+        var counter = 0;
+
+        function send() {
+          eb.send("input", 'Event ' + counter++);
+        }
+    </script>
+</head>
+<body>
+<input value="Send" type="button" onclick="send()"/>
+<div id="output"></div>
+</body>
+</html>
