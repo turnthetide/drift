@@ -22,10 +22,6 @@ class MainVerticle : AbstractVerticle() {
 
     val router = Router.router(vertx)
 
-    router.route().handler(CookieHandler.create())
-    router.route().handler(BodyHandler.create())
-    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)))
-
     val sockJSHandler = SockJSHandler.create(vertx)
     val bridgeOptions = BridgeOptions()
       .addInboundPermitted(PermittedOptions().setAddress("input"))
@@ -33,8 +29,7 @@ class MainVerticle : AbstractVerticle() {
     sockJSHandler.bridge(bridgeOptions)
     router.route("/eventbus/*").handler(sockJSHandler)
 
-    router.get("/app/*").handler(StaticHandler.create().setCachingEnabled(false))
-    router.get("/").handler { context -> context.reroute("/app/index.html") }
+    router.get("/").handler(StaticHandler.create().setCachingEnabled(false))
 
     vertx.eventBus().consumer<String>("input") { msg ->
       vertx.eventBus().publish("events", msg.body())
