@@ -12,19 +12,20 @@
 
         eb.onopen = function () {
           eb.registerHandler("events", function (error, message) {
-            document.getElementById('output').innerHTML += message.body + '<br/>';
+            document.getElementById('output').innerHTML += message.body;
           });
         };
 
         var counter = 0;
 
         function send() {
-          eb.send("input", 'Event ' + counter++);
+          eb.send("input", 'Event ' + (counter++) + '<br/>');
         }
     </script>
 </head>
 <body>
-<input value="Send" type="button" onclick="send()"/>
-<div id="output"></div>
+<tt><input value="Send" type="button" onclick="send()"/>
+    <div id="output"></div>
+</tt>
 </body>
 </html>

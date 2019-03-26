@@ -8,14 +8,17 @@ import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.StaticHandler
 import io.vertx.ext.web.handler.sockjs.BridgeOptions
 import io.vertx.ext.web.handler.sockjs.SockJSHandler
+import kotlin.random.Random
 
 class MainVerticle : AbstractVerticle() {
 
     private val logger = LoggerFactory.getLogger(MainVerticle::class.java)
 
     override fun start(startFuture: Future<Void>) {
-        val server = vertx.createHttpServer()
 
+        vertx.deployVerticle("ttt.drift.LobbyVerticle")
+
+        val server = vertx.createHttpServer()
         val router = Router.router(vertx)
 
         val sockJSHandler = SockJSHandler.create(vertx)
@@ -29,6 +32,10 @@ class MainVerticle : AbstractVerticle() {
 
         vertx.eventBus().consumer<String>("input") { msg ->
             vertx.eventBus().publish("events", msg.body())
+        }
+
+        vertx.setPeriodic(100) {
+            vertx.eventBus().publish("events", if (Random.nextBoolean()) "/" else "\\")
         }
 
         server

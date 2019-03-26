@@ -144,6 +144,12 @@
                 <version>${exec-maven-plugin.version}</version>
                 <configuration>
                     <mainClass>io.vertx.core.Launcher</mainClass>
+                    <systemProperties>
+                        <systemProperty>
+                            <key>vertx.logger-delegate-factory-class-name</key>
+                            <value>io.vertx.core.logging.SLF4JLogDelegateFactory</value>
+                        </systemProperty>
+                    </systemProperties>
                     <arguments>
                         <argument>run</argument>
                         <argument>${main.verticle}</argument>
