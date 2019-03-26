@@ -15,16 +15,16 @@ import java.util.concurrent.TimeUnit
 class TestMainVerticle {
 
   @BeforeEach
-  fun deploy_verticle(vertx: Vertx, testContext: VertxTestContext) {
+  fun deployVerticle(vertx: Vertx, testContext: VertxTestContext) {
     vertx.deployVerticle(MainVerticle(), testContext.succeeding<String> { testContext.completeNow() })
   }
 
   @Test
-  @DisplayName("Should start a Web Server on port 8888")
+  @DisplayName("Should start a Web Server on port 8080")
   @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
   @Throws(Throwable::class)
-  fun start_http_server(vertx: Vertx, testContext: VertxTestContext) {
-    vertx.createHttpClient().getNow(8888, "localhost", "/") { response ->
+  fun startHttpServer(vertx: Vertx, testContext: VertxTestContext) {
+    vertx.createHttpClient().getNow(8080, "localhost", "/") { response ->
       testContext.verify {
         assertTrue(response.statusCode() == 200)
         response.handler { body ->

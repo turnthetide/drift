@@ -1,15 +1,16 @@
+# Intellij
 .idea/
-.gradle
-/build/
+*.iml
+*.iws
 
-# Ignore Gradle GUI config
-gradle-app.setting
+# Mac
+.DS_Store
 
-# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
-!gradle-wrapper.jar
+# Maven
+log/
+target/
+.mvn/
 
-# Cache of project
-.gradletasknamecache
+# Vert.x
+.vertx/
 
-# # Work around https://youtrack.jetbrains.com/issue/IDEA-116898
-gradle/wrapper/gradle-wrapper.properties

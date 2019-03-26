@@ -8,16 +8,16 @@ Reactive gaming server
 
 To launch your tests:
 ```
-./gradlew clean test
+./mvnw clean test
 ```
 
 To package your application:
 ```
-./gradlew clean assemble
+./mvnw clean package
 ```
 
 To run your application:
 ```
-./gradlew clean run
+./mvnw clean compile exec:java
 ```
 
