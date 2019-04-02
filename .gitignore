@@ -9,7 +9,6 @@
 # Maven
 log/
 target/
-.mvn/
 
 # Vert.x
 .vertx/
