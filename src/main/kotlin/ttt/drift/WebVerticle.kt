@@ -10,9 +10,9 @@ import io.vertx.ext.web.handler.sockjs.BridgeOptions
 import io.vertx.ext.web.handler.sockjs.SockJSHandler
 import kotlin.random.Random
 
-class WebVerticle : AbstractVerticle() {
+private val logger = LoggerFactory.getLogger(WebVerticle::class.java)
 
-    private val logger = LoggerFactory.getLogger(WebVerticle::class.java)
+class WebVerticle : AbstractVerticle() {
 
     override fun start(startFuture: Future<Void>) {
 
@@ -21,8 +21,9 @@ class WebVerticle : AbstractVerticle() {
         val sockJSHandler = SockJSHandler.create(vertx)
         val bridgeOptions = BridgeOptions()
             .addInboundPermitted(PermittedOptions().setAddress("input"))
-            .addInboundPermitted(PermittedOptions().setAddress("matches"))
             .addOutboundPermitted(PermittedOptions().setAddress("events"))
+            .addInboundPermitted(PermittedOptions().setAddress("matches"))
+            .addOutboundPermitted(PermittedOptions().setAddress("matches/new"))
         sockJSHandler.bridge(bridgeOptions)
 
         router.get("/").handler(StaticHandler.create().setCachingEnabled(false))
@@ -33,7 +34,7 @@ class WebVerticle : AbstractVerticle() {
             vertx.eventBus().publish("events", msg.body())
         }
 
-        vertx.setPeriodic(100) {
+        vertx.setPeriodic(1000) {
             vertx.eventBus().publish("events", if (Random.nextBoolean()) "/" else "\\")
         }
 

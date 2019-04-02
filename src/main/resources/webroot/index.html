@@ -14,17 +14,27 @@
           eb.registerHandler("events", function (error, message) {
             document.getElementById('output').innerHTML += message.body;
           });
+
+          eb.registerHandler("matches/new", function (error, message) {
+            document.getElementById('matches').innerHTML += message.body + '</br>';
+          });
         };
 
         var counter = 0;
 
         function send() {
-          eb.send("input", 'Event ' + (counter++) + '<br/>');
+          eb.send("input", 'Event ' + (counter++) + '</br>');
+        }
+        function create() {
+          eb.send("matches", '{"action": "create", "game": "Pong"}');
         }
     </script>
 </head>
 <body>
-<tt><input value="Send" type="button" onclick="send()"/>
+<tt>
+    <input value="Create" type="button" onclick="create()"/>
+    <div id="matches"></div>
+    <input value="Send" type="button" onclick="send()"/>
     <div id="output"></div>
 </tt>
 </body>
