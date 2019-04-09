@@ -8,33 +8,39 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vertx/3.6.3/vertx-eventbus.min.js"
             crossorigin="anonymous"></script>
     <script>
-        var eb = new EventBus(window.location.protocol + "//" + window.location.host + "/eventbus");
+var matchId;
+var playerId;
 
-        eb.onopen = function () {
-          eb.registerHandler("events", function (error, message) {
-            document.getElementById('output').innerHTML += message.body;
-          });
+var eb = new EventBus(window.location.protocol + "//" + window.location.host + "/eventbus");
+eb.enableReconnect(true);
 
-          eb.registerHandler("matches/new", function (error, message) {
-            document.getElementById('matches').innerHTML += message.body + '</br>';
-          });
-        };
+eb.onopen = function () {
+    eb.registerHandler("matches/new", function (error, message) {
+        document.getElementById('matches').innerHTML += JSON.stringify(message.body) + '</br>';
+    });
+};
 
-        var counter = 0;
+function create() {
+    eb.send("matches", '{"action": "create", "name": "Pong", "players": 2, "options": {}}', function (error, message) {
+        matchId = message.body.id;
+        playerId = message.body.invites[0];
+        eb.registerHandler("matches/" + matchId + "/events", function (error, message) {
+            document.getElementById('output').innerHTML = JSON.stringify(message.body);
+        })
+    });
+}
 
-        function send() {
-          eb.send("input", 'Event ' + (counter++) + '</br>');
-        }
-        function create() {
-          eb.send("matches", '{"action": "create", "game": "Pong"}');
-        }
+function send(direction) {
+    eb.send("matches/" + matchId + "/input", '{"player": "' + playerId + '", "move": {"direction": ' + direction + '}}')
+}
     </script>
 </head>
 <body>
 <tt>
     <input value="Create" type="button" onclick="create()"/>
     <div id="matches"></div>
-    <input value="Send" type="button" onclick="send()"/>
+    <input value="Send 1" type="button" onclick="send(1)"/>
+    <input value="Send 2" type="button" onclick="send(2)"/>
     <div id="output"></div>
 </tt>
 </body>

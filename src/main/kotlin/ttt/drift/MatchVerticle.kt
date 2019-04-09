@@ -1,83 +1,54 @@
 package ttt.drift
 
 import io.vertx.core.AbstractVerticle
-import io.vertx.core.AsyncResult
 import io.vertx.core.Future
-import io.vertx.core.eventbus.Message
 import io.vertx.core.json.JsonObject
-import io.vertx.core.logging.LoggerFactory
-import io.vertx.core.shareddata.AsyncMap
 import io.vertx.kotlin.core.json.array
-import io.vertx.kotlin.core.json.get
 import io.vertx.kotlin.core.json.json
-import io.vertx.kotlin.core.json.obj
-import java.util.*
+import mu.KotlinLogging
 
-private val logger = LoggerFactory.getLogger(MatchVerticle::class.java)
+class MatchVerticle(val id: String, private val rules: Rules) : AbstractVerticle() {
 
-private const val MATCHES_KEY = "matches"
-
-class MatchVerticle : AbstractVerticle() {
+    private val logger = KotlinLogging.logger {}
+    private val events = mutableListOf<Event>()
 
     override fun start(startFuture: Future<Void>) {
-        vertx.eventBus().consumer<String>(MATCHES_KEY) { msg ->
+
+        rules.eventListeners += EventBusEventListener()
+        rules.eventListeners += StackEventListener()
+
+        vertx.eventBus().consumer<String>("$MATCHES_KEY/$id/input") { msg ->
             val body = JsonObject(msg.body())
-            val action = body.get<String>("action") ?: ""
-            when (action) {
-                "list" -> getMatches(listMatches(msg))
-                "create" -> getMatches(createMatch(msg, body))
-                else -> msg.reply("Action $action not supported!")
-            }
+            val player = body.getString("player")
+            val move = body.getJsonObject("move")
+            logger.debug { "[${rules.name}] [$id] Player $player move $move" }
+            rules.play(player, move)
         }
+
+        vertx.eventBus().consumer<String>("$MATCHES_KEY/$id/events/all") { msg ->
+            msg.reply(json { array(events) })
+        }
+
+        rules.start(vertx)
+        logger.info { "[${rules.name}] [$id] Match Started!" }
+
         startFuture.complete()
     }
 
-    private fun createMatch(
-        msg: Message<String>,
-        body: JsonObject
-    ): (AsyncResult<AsyncMap<String, JsonObject>>) -> Unit = { arMap ->
-        when {
-            arMap.succeeded() -> {
-                val uid = UUID.randomUUID().toString()
-                val json = json {
-                    obj(
-                        "uid" to uid,
-                        "game" to body
-                    )
-                }
-                arMap.result().put(uid, json) { arPut ->
-                    if (arPut.succeeded()) {
-                        msg.reply(json)
-                        vertx.eventBus().publish("$MATCHES_KEY/new", json.toString())
-                    } else {
-                        msg.reply(arPut.cause())
-                    }
-                }
-            }
-            else -> msg.reply(arMap.cause())
+    override fun stop() {
+        logger.info { "[${rules.name}] [$id] Match Ended!" }
+    }
+
+    inner class StackEventListener : RulesEventListener() {
+        override fun event(event: Event) {
+            events += event
         }
     }
 
-    private fun listMatches(msg: Message<String>): (AsyncResult<AsyncMap<String, JsonObject>>) -> Unit = { arMap ->
-        when {
-            arMap.succeeded() -> arMap.result().keys { arKeys ->
-                if (arKeys.succeeded()) {
-                    msg.reply(json { array(arKeys.result()) })
-                } else {
-                    msg.reply(arKeys.cause())
-                }
-            }
-            else -> msg.reply(arMap.cause())
-        }
-    }
-
-    private fun getMatches(handler: (AsyncResult<AsyncMap<String, JsonObject>>) -> Unit) {
-        vertx.sharedData().getAsyncMap<String, JsonObject>(MATCHES_KEY) { res ->
-            if (res.succeeded()) {
-                handler(Future.succeededFuture(res.result()))
-            } else {
-                handler(Future.failedFuture(res.cause()))
-            }
+    inner class EventBusEventListener : RulesEventListener() {
+        override fun event(event: Event) {
+            logger.debug { "[${rules.name}] [$id] Event $event" }
+            vertx.eventBus().publish("$MATCHES_KEY/$id/events", event)
         }
     }
 

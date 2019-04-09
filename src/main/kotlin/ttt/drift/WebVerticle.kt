@@ -8,7 +8,6 @@ import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.StaticHandler
 import io.vertx.ext.web.handler.sockjs.BridgeOptions
 import io.vertx.ext.web.handler.sockjs.SockJSHandler
-import kotlin.random.Random
 
 private val logger = LoggerFactory.getLogger(WebVerticle::class.java)
 
@@ -20,8 +19,8 @@ class WebVerticle : AbstractVerticle() {
         val router = Router.router(vertx)
         val sockJSHandler = SockJSHandler.create(vertx)
         val bridgeOptions = BridgeOptions()
-            .addInboundPermitted(PermittedOptions().setAddress("input"))
-            .addOutboundPermitted(PermittedOptions().setAddress("events"))
+            .addInboundPermitted(PermittedOptions().setAddressRegex("matches\\/.*\\/input"))
+            .addOutboundPermitted(PermittedOptions().setAddressRegex("matches\\/.*\\/events"))
             .addInboundPermitted(PermittedOptions().setAddress("matches"))
             .addOutboundPermitted(PermittedOptions().setAddress("matches/new"))
         sockJSHandler.bridge(bridgeOptions)
@@ -29,14 +28,6 @@ class WebVerticle : AbstractVerticle() {
         router.get("/").handler(StaticHandler.create().setCachingEnabled(false))
 
         router.route("/eventbus/*").handler(sockJSHandler)
-
-        vertx.eventBus().consumer<String>("input") { msg ->
-            vertx.eventBus().publish("events", msg.body())
-        }
-
-        vertx.setPeriodic(1000) {
-            vertx.eventBus().publish("events", if (Random.nextBoolean()) "/" else "\\")
-        }
 
         server.requestHandler(router).listen(8080) { ar ->
             if (ar.succeeded()) {
