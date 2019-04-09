@@ -1,23 +1,37 @@
-[![alt text](https://img.shields.io/badge/vert.x-3.6.3-purple.svg "vert.x-3.6.3")](https://vertx.io)
+[![alt text](https://img.shields.io/badge/vert.x-3.7.0-purple.svg "vert.x-3.7.0")](https://vertx.io)
 
 # Drift
 
-Reactive gaming server
+> Reactive gaming server
 
 ## Building
 
-To launch your tests:
+To develop:
+```
+./mvnw compile quarkus:dev
+```
+
+To test:
 ```
 ./mvnw clean test
 ```
 
-To package your application:
+To build:
 ```
-./mvnw clean package
-```
-
-To run your application:
-```
-./mvnw clean compile exec:java
+./mvnw clean package -Pnative
 ```
 
+To run:
+```
+./target/drift-1.0.0-SNAPSHOT-runner
+```
+
+To connect:
+
+http://localhost:8080
+
+## Made with
+
+- Kotlin
+- Vert.X
+- Quarkus.io
