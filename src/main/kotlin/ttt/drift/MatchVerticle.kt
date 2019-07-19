@@ -14,14 +14,17 @@ class MatchVerticle(val id: String, private val rules: Rules) : AbstractVerticle
 
     override fun start(startFuture: Future<Void>) {
 
+        val game = Game()
+        rules.eventListeners += game
         rules.eventListeners += EventBusEventListener()
         rules.eventListeners += StackEventListener()
+        rules.eventListeners += LoggerEventListener()
 
         vertx.eventBus().consumer<String>("$MATCHES_KEY/$id/input") { msg ->
             val body = JsonObject(msg.body())
             val player = body.getString("player")
             val move = body.getJsonObject("move")
-            logger.debug { "[${rules.name}] [$id] Player $player move $move" }
+            logger.debug { log("Player $player move $move") }
             rules.play(player, move)
         }
 
@@ -29,15 +32,17 @@ class MatchVerticle(val id: String, private val rules: Rules) : AbstractVerticle
             msg.reply(json { array(events) })
         }
 
-        rules.start(vertx)
-        logger.info { "[${rules.name}] [$id] Match Started!" }
+        rules.start(vertx, game)
+        logger.info { log("Match Started!") }
 
         startFuture.complete()
     }
 
     override fun stop() {
-        logger.info { "[${rules.name}] [$id] Match Ended!" }
+        logger.info { log("Match Ended!") }
     }
+
+    private fun log(msg: String) = "[${rules.name}] [$id] $msg"
 
     inner class StackEventListener : RulesEventListener() {
         override fun event(event: Event) {
@@ -45,9 +50,15 @@ class MatchVerticle(val id: String, private val rules: Rules) : AbstractVerticle
         }
     }
 
+    inner class LoggerEventListener : RulesEventListener() {
+        override fun event(event: Event) {
+            logger.info { log("$event") }
+        }
+    }
+
     inner class EventBusEventListener : RulesEventListener() {
         override fun event(event: Event) {
-            logger.debug { "[${rules.name}] [$id] Event $event" }
+            logger.debug { log("Event $event") }
             vertx.eventBus().publish("$MATCHES_KEY/$id/events", event)
         }
     }

@@ -6,6 +6,7 @@ import java.time.ZonedDateTime
 abstract class Event(
     id: Long,
     type: String,
+    body: JsonObject = JsonObject(),
     vararg properties: Pair<String, Any>,
     time: ZonedDateTime = ZonedDateTime.now()
 ) :
@@ -14,7 +15,7 @@ abstract class Event(
             "id" to id,
             "type" to type,
             "time" to time.toString(),
-            "body" to JsonObject(),
+            "body" to body,
             *properties
         )
     ) {

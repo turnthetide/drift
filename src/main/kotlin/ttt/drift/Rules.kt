@@ -13,7 +13,7 @@ abstract class Rules(val id: String, val name: String, val players: Int, val opt
     val eventListeners = mutableListOf<RulesEventListener>()
     var eventCounter: Long = 0
 
-    abstract fun start(vertx: Vertx)
+    abstract fun start(vertx: Vertx, game: Game)
 
     abstract fun play(player: String, move: JsonObject)
 
